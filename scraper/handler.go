@@ -58,8 +58,17 @@ func (h *Handler) LoadConfig(b []byte) error {
 				}
 			}
 		}
+	} else {
+		for _, e := range c {
+			if e.Headers == nil {
+				e.Headers = h.Headers
+			}
+		}
 	}
 	if h.Debug {
+		for _, e := range c {
+			e.Debug = true
+		}
 		logf("Enabled debug mode")
 	}
 	//replace config
