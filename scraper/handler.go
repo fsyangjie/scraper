@@ -37,38 +37,29 @@ func (h *Handler) LoadConfig(b []byte) error {
 	if err := json.Unmarshal(b, &c); err != nil {
 		return err
 	}
-	if h.Log {
-		for k, e := range c {
-			if strings.HasPrefix(k, "/") {
-				delete(c, k)
-				k = strings.TrimPrefix(k, "/")
-				c[k] = e
-			}
-			logf("Loaded endpoint: /%s", k)
-			// Copy the Debug attribute
-			e.Debug = h.Debug
-			// Copy the Header attributes (only if they are not yet set)
-			if e.Headers == nil {
-				e.Headers = h.Headers
-			} else {
-				for k, v := range h.Headers {
-					if _, ok := e.Headers[k]; !ok {
-						e.Headers[k] = v
-					}
-				}
-			}
+	for k, e := range c {
+		if strings.HasPrefix(k, "/") {
+			delete(c, k)
+			k = strings.TrimPrefix(k, "/")
+			c[k] = e
 		}
-	} else {
-		for _, e := range c {
-			if e.Headers == nil {
-				e.Headers = h.Headers
+		if h.Log {
+			logf("Loaded endpoint: /%s", k)
+		}
+		// Copy the Debug attribute
+		e.Debug = h.Debug
+		// Copy the Header attributes (only if they are not yet set)
+		if e.Headers == nil {
+			e.Headers = h.Headers
+		} else {
+			for k, v := range h.Headers {
+				if _, ok := e.Headers[k]; !ok {
+					e.Headers[k] = v
+				}
 			}
 		}
 	}
 	if h.Debug {
-		for _, e := range c {
-			e.Debug = true
-		}
 		logf("Enabled debug mode")
 	}
 	//replace config
