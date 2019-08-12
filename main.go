@@ -15,7 +15,6 @@ import (
 var VERSION = "0.0.0"
 
 type config struct {
-	*scraper.Handler `type:"embedded"`
 	ConfigFile       string `type:"arg" help:"Path to JSON configuration file"`
 	Host             string `help:"Listening interface"`
 	Port             int    `help:"Listening port"`
@@ -24,10 +23,9 @@ type config struct {
 
 func main() {
 
-	h := &scraper.Handler{Log: true}
+	h := &scraper.Handler{Log: true, Debug:true}
 
 	c := config{
-		Handler: h,
 		Host:    "0.0.0.0",
 		Port:    3000,
 	}
