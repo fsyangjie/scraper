@@ -8,26 +8,33 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/boypt/scraper/scraper"
 	"github.com/jpillora/opts"
-	"github.com/jpillora/scraper/scraper"
 )
 
 var VERSION = "0.0.0"
 
 type config struct {
-	ConfigFile       string `type:"arg" help:"Path to JSON configuration file"`
-	Host             string `help:"Listening interface"`
-	Port             int    `help:"Listening port"`
-	NoLog            bool   `help:"Disable access logs"`
+	ConfigFile string `type:"arg" help:"Path to JSON configuration file"`
+	Host       string `help:"Listening interface"`
+	Port       int    `help:"Listening port"`
+	NoLog      bool   `help:"Disable access logs"`
 }
 
 func main() {
 
-	h := &scraper.Handler{Log: true, Debug:true}
+	h := &scraper.Handler{
+		Log:   true,
+		Debug: true,
+		Headers: map[string]string{
+			//we're a trusty browser :)
+			"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36",
+		},
+	}
 
 	c := config{
-		Host:    "0.0.0.0",
-		Port:    3000,
+		Host: "0.0.0.0",
+		Port: 3000,
 	}
 
 	opts.New(&c).
