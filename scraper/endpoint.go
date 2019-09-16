@@ -3,7 +3,6 @@ package scraper
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -82,8 +81,7 @@ func (e *Endpoint) Execute(params map[string]string) ([]Result, error) {
 		logf("%s %s => %s", method, url, resp.Status)
 	}
 	if resp.StatusCode != http.StatusOK {
-		errstr, _ := ioutil.ReadAll(resp.Body)
-		return nil, fmt.Errorf("Status: %d, Body: %s", resp.StatusCode, errstr)
+		return nil, fmt.Errorf("Status: %d", resp.StatusCode)
 	}
 	//parse HTML
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
