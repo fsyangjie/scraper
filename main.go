@@ -38,7 +38,7 @@ func main() {
 	}
 
 	opts.New(&c).
-		Repo("github.com/jpillora/scraper").
+		Repo("github.com/boypt/scraper").
 		Version(VERSION).
 		Parse()
 
