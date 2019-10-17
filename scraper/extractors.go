@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/tidwall/gjson"
 )
 
 type Extractor struct {
@@ -59,6 +60,17 @@ func (ex Extractors) execute(s *goquery.Selection) string {
 		v, s = e.fn(v, s)
 	}
 	return v
+}
+
+//execute all Extractors on the query
+func (ex Extractors) executeJSON(s string) string {
+	var vals []string
+	for _, e := range ex {
+		vals = append(vals, e.val)
+	}
+
+	value := gjson.Get(s, strings.Join(vals, "."))
+	return value.String()
 }
 
 func (ex *Extractors) UnmarshalJSON(data []byte) error {

@@ -3,6 +3,7 @@ package scraper
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -28,6 +29,19 @@ func (e *Endpoint) extract(sel *goquery.Selection) Result {
 	r := Result{}
 	for field, ext := range e.Result {
 		if v := ext.execute(sel); v != "" {
+			r[field] = v
+		} else if e.Debug {
+			logf("missing %s", field)
+		}
+	}
+	return r
+}
+
+//extract 1 result using this endpoints extractor map
+func (e *Endpoint) extractJSON(s string) Result {
+	r := Result{}
+	for field, ext := range e.Result {
+		if v := ext.executeJSON(s); v != "" {
 			r[field] = v
 		} else if e.Debug {
 			logf("missing %s", field)
@@ -83,14 +97,31 @@ func (e *Endpoint) Execute(params map[string]string) ([]Result, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Status: %d", resp.StatusCode)
 	}
+
+	//results will be either a list of results, or a single result
+	var results []Result
+
+	//parse json
+	cntType := resp.Header.Get("content-type")
+	if strings.Contains(cntType, "json") {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		bodystr := string(body)
+		if e.Debug {
+			logf("found json: %s", bodystr)
+		}
+		results = append(results, e.extractJSON(bodystr))
+		return results, nil
+	}
+
 	//parse HTML
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 	sel := doc.Selection
-	//results will be either a list of results, or a single result
-	var results []Result
 	if e.List != "" {
 		sels := sel.Find(e.List)
 		if e.Debug {
