@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/boypt/scraper/scraper"
+	"github.com/boypt/scraper"
 	"github.com/jpillora/opts"
 )
 
