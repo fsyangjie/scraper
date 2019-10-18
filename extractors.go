@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -226,6 +227,26 @@ var generators = []struct {
 		generate: func(_ string) (extractorFn, error) {
 			return func(value string, sel *goquery.Selection) (string, *goquery.Selection) {
 				return value, sel.First()
+			}, nil
+		},
+	},
+	{
+		match: func(extractor string) bool {
+			return strings.HasPrefix(extractor, "node(") && strings.HasSuffix(extractor, ")")
+		},
+		generate: func(extractor string) (extractorFn, error) {
+			textIndex := strings.TrimSuffix(strings.TrimPrefix(extractor, "node("), ")")
+			return func(value string, sel *goquery.Selection) (string, *goquery.Selection) {
+				tIdx, err := strconv.Atoi(textIndex)
+				if err != nil {
+					return value, sel
+				}
+				sel.Contents().Each(func(i int, s *goquery.Selection) {
+					if i == tIdx {
+						value = s.Text()
+					}
+				})
+				return value, sel
 			}, nil
 		},
 	},
