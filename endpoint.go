@@ -85,6 +85,9 @@ func (e *Endpoint) Execute(params map[string]string) ([]Result, error) {
 		}
 	}
 	//make backend HTTP request
+	if e.Debug {
+		logf("Request => %s %s", method, url)
+	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
