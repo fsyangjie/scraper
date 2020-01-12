@@ -2,46 +2,23 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
-	"strings"
+	"net/url"
 
 	"github.com/boypt/scraper"
-	"github.com/jpillora/opts"
 )
 
-var VERSION = "0.0.0"
-
-type config struct {
-	ConfigFile string `opts:"help=Path to JSON configuration file"`
-	EntryPoint string `opts:"help=entrypoint"`
-	Query      string `opts:"help=query"`
-	Item       string `opts:"help=item"`
-	TestAll    bool   `opts:"help=all"`
-}
-
-func testAll(h *scraper.Handler, c *config) {
-
-	for k, endpoint := range h.Config {
-		if strings.Contains(k, "item") {
-			log.Println("skiped ", k)
-			continue
-		}
-
-		log.Println("^^^^^^^^^^^^^  testing for ", k)
-
-		param := map[string]string{"query": c.Query}
-		result, err := endpoint.Execute(param)
-		if err != nil {
-			log.Printf("%v\n", err)
-			continue
-		}
-
-		log.Println("^^^^^^^^^^^^^  result size: ", len(result))
-	}
-}
+var (
+	configFile = flag.String("c", "", "config file")
+	entry      = flag.String("e", "", "entry point (key of the config)")
+	query      = flag.String("q", "", "query string")
+	testAll    = flag.Bool("testall", false, "test all keys in the config using the query")
+)
 
 func main() {
+	flag.Parse()
 
 	h := &scraper.Handler{
 		Log:   true,
@@ -52,34 +29,36 @@ func main() {
 		},
 	}
 
-	c := config{}
-	opts.New(&c).
-		Repo("github.com/boypt/scraper").
-		Version(VERSION).
-		Parse()
-
-	if err := h.LoadConfigFile(c.ConfigFile); err != nil {
+	if err := h.LoadConfigFile(*configFile); err != nil {
 		log.Fatal(err)
 	}
 
-	if c.TestAll {
-		testAll(h, &c)
+	param := map[string]string{}
+	m, err := url.ParseQuery(*query)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	for k, v := range m {
+		param[k] = v[0]
+	}
+
+	if *testAll {
+		for name, endpoint := range h.Config {
+			result, err := endpoint.Execute(param)
+			if err != nil {
+				log.Fatalf("%v\n", err)
+			}
+			log.Printf("endpoint %s returned %d results\n", name, len(result))
+		}
+
 		return
 	}
 
-	enpoint, ok := h.Config[c.EntryPoint]
+	enpoint, ok := h.Config[*entry]
 	if !ok {
 		log.Fatal("entry pont not found")
 	}
-	param := map[string]string{}
-
-	if c.Query != "" {
-		param["query"] = c.Query
-	}
-	if c.Item != "" {
-		param["item"] = c.Item
-	}
-
 	result, err := enpoint.Execute(param)
 	if err != nil {
 		log.Fatalf("%v\n", err)
