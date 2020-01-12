@@ -8,18 +8,6 @@ A configuration based, HTML ⇒ JSON API server
 * Simple configuration
 * Zero-downtime config reload with `kill -s SIGHUP <scraper-pid>`
 
-### Install
-
-**Binaries**
-
-See [the latest release](https://github.com/jpillora/scraper/releases/latest) or download it with this one-liner: `curl i.jpillora.com/scraper | bash`
-
-**Source**
-
-``` sh
-$ go get -v github.com/jpillora/scraper
-```
-
 ### Quick Example
 
 Given `google.json`
@@ -85,6 +73,34 @@ $ curl "localhost:3000/search?query=hellokitty"
   * a query param in the form `query-param(abc)` - parses the current context as a URL and extracts the provided param
   * a css selector `abc` (if not in the forms above) alters the DOM context.
 * `list` - **Optional** A css selector used to split the root DOM context into a set of DOM contexts. Useful for capturing search results.
+
+### Cli version
+
+A cli version `scrapercli` is provided to test with configuration.
+
+Usage:
+```
+Usage of ./scrapercli:
+  -c string
+        config file
+  -e string
+        entry point (key of the config)
+  -hide
+        hide the scraper debug info
+  -q string
+        query string
+  -testall
+        test all keys in the config using the query
+```
+
+Examples:
+```
+./scrapercli -c scraper-config.json -e "google" -q "query=black&page=0"
+
+./scrapercli -c scraper-config.json -q "query=black&page=0" -testall -hide
+
+```
+
 
 #### Similar projects
 
