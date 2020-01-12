@@ -31,7 +31,7 @@ func main() {
 	}
 
 	if err := h.LoadConfigFile(*configFile); err != nil {
-		log.Fatal(err)
+		log.Fatalln(*configFile, err)
 	}
 
 	param := map[string]string{}
