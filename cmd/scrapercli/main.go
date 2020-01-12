@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/boypt/scraper"
 )
@@ -16,14 +17,15 @@ var (
 	entry      = flag.String("e", "", "entry point (key of the config)")
 	query      = flag.String("q", "", "query string")
 	testAll    = flag.Bool("testall", false, "test all keys in the config using the query")
+	hide       = flag.Bool("hide", false, "hide the scraper debug info")
 )
 
 func main() {
 	flag.Parse()
 
 	h := &scraper.Handler{
-		Log:   true,
-		Debug: true,
+		Log:   !*hide,
+		Debug: !*hide,
 		Headers: map[string]string{
 			//we're a trusty browser :)
 			"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36",
@@ -45,18 +47,28 @@ func main() {
 	}
 
 	if *testAll {
+		paral := make(chan struct{}, 5)
+		var wg sync.WaitGroup
 		for name, endpoint := range h.Config {
-			if strings.Contains(name, "/") {
-				log.Println("skip entpoint:", name)
+			if strings.Contains(name, "/item") {
+				log.Println("entpoint skiped (per item entpoint):", name)
 				continue
 			}
-			result, err := endpoint.Execute(param)
-			if err != nil {
-				log.Fatalf("%v\n", err)
-			}
-			log.Printf("endpoint %s returned %d results\n", name, len(result))
+
+			wg.Add(1)
+			go func(n string, e *scraper.Endpoint) {
+				paral <- struct{}{}
+				result, err := e.Execute(param)
+				if err != nil {
+					log.Println(n, err)
+				}
+				log.Printf("endpoint %s returned %d results\n", n, len(result))
+				<-paral
+				wg.Done()
+			}(name, endpoint)
 		}
 
+		wg.Wait()
 		return
 	}
 
