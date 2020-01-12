@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"strings"
 
 	"github.com/boypt/scraper"
 )
@@ -45,6 +46,10 @@ func main() {
 
 	if *testAll {
 		for name, endpoint := range h.Config {
+			if strings.Contains(name, "/") {
+				log.Println("skip entpoint:", name)
+				continue
+			}
 			result, err := endpoint.Execute(param)
 			if err != nil {
 				log.Fatalf("%v\n", err)
