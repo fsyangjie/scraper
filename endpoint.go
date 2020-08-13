@@ -2,12 +2,12 @@ package scraper
 
 import (
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/tidwall/gjson"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
-
-	"github.com/PuerkitoBio/goquery"
 )
 
 //Endpoint represents a single remote endpoint. The performed
@@ -115,7 +115,17 @@ func (e *Endpoint) Execute(params map[string]string) ([]Result, error) {
 		if e.Debug {
 			logf("found json: %s", bodystr)
 		}
-		results = append(results, e.extractJSON(bodystr))
+
+		result := gjson.Parse(bodystr)
+
+		if result.IsArray() {
+			result.ForEach(func(key, value gjson.Result) bool {
+				results = append(results, e.extractJSON(value.String()))
+				return true // keep iterating
+			})
+		} else {
+			results = append(results, e.extractJSON(bodystr))
+		}
 		return results, nil
 	}
 

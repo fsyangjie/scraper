@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/boypt/scraper"
+	"github.com/fsyangjie/scraper"
 )
 
 var (

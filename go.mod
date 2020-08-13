@@ -1,4 +1,4 @@
-module github.com/boypt/scraper
+module github.com/fsyangjie/scraper
 
 go 1.12
 
